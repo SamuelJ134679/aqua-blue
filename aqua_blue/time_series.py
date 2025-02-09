@@ -54,3 +54,35 @@ class TimeSeries:
         return bool(np.all(self.times == other.times) and np.all(
             np.isclose(self.dependent_variable, other.dependent_variable)
         ))
+
+    def __setitem__(self,key,value: TimeSeries):
+        if isinstance(key,slice):
+            if key.stop >= len(self.dependent_variable):
+                raise ValueError("if key is a slice it must have a valid range")
+
+
+        else:
+            if key >= len(self.dependent_variable) or key >= len(self.times):
+                raise ValueError("Key must be less than the length of the time series")
+
+        self.dependent_variable[key] = value.dependent_variable[key] # numpy handles setting slices nicely so no extra explicit logic is needed.
+        self.times[key] = value.times[key]
+        return
+
+    def __delitem__(self, key): # You can pass slices as key, __getslice__ and __setslice__ is dpereciated. If we wanted to handle slices
+                                # numpy will have done the work for us by implimenting it for theirNDArray type. Same for __setitem__.
+
+        if isinstance(key,slice):
+            if (key.stop >= len(self.dependent_variable) or key.stop >= len(self.times)):
+                raise ValueError("if key is a slice it must have a valid range")
+            mask = np.ones(len(self.dependent_variable),dtype=bool)
+            mask[key] = False
+            self.times = self.times[mask]
+            self.dependent_variable = self.dependent_variable[mask]
+            return
+
+        if key >= len(self.dependent_variable) or key >= len(self.times):
+            raise ValueError("Key must be less than the length of the time series")
+
+        self.dependent_variable = np.delete(self.dependent_variable,key)
+        self.times = np.delete(self.times,key)
