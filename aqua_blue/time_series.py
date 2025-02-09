@@ -56,11 +56,17 @@ class TimeSeries:
         ))
 
     def __setitem__(self,key,value: TimeSeries):
-        if isinstance(key,slice):
-            if key.stop >= len(self.dependent_variable):
-                raise ValueError("if key is a slice it must have a valid range")
-
-
+    if not isinstance(value, TimeSeries):
+        raise TypeError("Value must be a TimeSeries object")
+        
+    if isinstance(key, slice):
+        if key.stop is not None and key.stop > len(self.dependent_variable):
+            raise ValueError("Slice stop index must be within valid range")
+        # Make sure the slice lengths match
+        src_len = len(value.dependent_variable[key])
+        dst_len = len(range(*key.indices(len(self.dependent_variable))))
+        if src_len != dst_len:
+            raise ValueError("Source and destination slices must have the same length")
         else:
             if key >= len(self.dependent_variable) or key >= len(self.times):
                 raise ValueError("Key must be less than the length of the time series")
